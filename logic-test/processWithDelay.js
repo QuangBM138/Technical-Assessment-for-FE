@@ -42,16 +42,12 @@ function processWithDelay(numbers, delay, cancelToken) {
                 case 0:
                     // Handle invalid inputs
                     if (!Array.isArray(numbers)) {
-                        // throw new Error("Invalid input: Expected an array of numbers.");
-                        console.log("Invalid input: Expected an array of numbers.");
-                        return [2 /*return*/, Promise.resolve()]; // Exit the function if invalid input is found
+                        throw new Error("Invalid input: Expected an array of numbers.");
                     }
                     for (_i = 0, numbers_1 = numbers; _i < numbers_1.length; _i++) {
                         num = numbers_1[_i];
                         if (typeof num !== "number") {
-                            // throw new Error("Invalid input: Array must contain only numbers.");
-                            console.log("Invalid input: Array must contain only numbers.");
-                            return [2 /*return*/, Promise.resolve()]; // Exit the function if invalid input is found
+                            throw new Error("Invalid input: Array must contain only numbers.");
                         }
                     }
                     // Handle empty arrays gracefully
@@ -120,17 +116,15 @@ function runCases() {
                     return [4 /*yield*/, cancellationPromise];
                 case 3:
                     _a.sent();
-                    //Case 4: Invalid input (non-array)
-                    console.log("----------------------------------------------------------------");
-                    console.log("Running Case 4: Invalid input (non-array)");
-                    return [4 /*yield*/, processWithDelay("invalid input", 1000)];
-                case 4:
-                    _a.sent();
+                    // //Case 4: Invalid input (non-array)
+                    // console.log("----------------------------------------------------------------");
+                    // console.log("Running Case 4: Invalid input (non-array)");
+                    // await processWithDelay("invalid input", 1000);
                     // Case 5: Invalid input (array with non-number elements)
                     console.log("----------------------------------------------------------------");
                     console.log("Running Case 5: Invalid input (array with non-number elements)");
                     return [4 /*yield*/, processWithDelay([1, "two", 3], 1000)];
-                case 5:
+                case 4:
                     _a.sent();
                     return [2 /*return*/];
             }

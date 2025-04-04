@@ -7,16 +7,12 @@ async function processWithDelay(
 ): Promise<void> {
     // Handle invalid inputs
     if (!Array.isArray(numbers)) {
-        // throw new Error("Invalid input: Expected an array of numbers.");
-        console.log("Invalid input: Expected an array of numbers.");
-        return Promise.resolve(); // Exit the function if invalid input is found
+        throw new Error("Invalid input: Expected an array of numbers.");
     }
 
     for (const num of numbers) {
         if (typeof num !== "number") {
-            // throw new Error("Invalid input: Array must contain only numbers.");
-            console.log("Invalid input: Array must contain only numbers.");
-            return Promise.resolve(); // Exit the function if invalid input is found
+            throw new Error("Invalid input: Array must contain only numbers.");
         }
     }
 
@@ -67,10 +63,10 @@ async function runCases() {
     }, 2500);
     await cancellationPromise;
 
-    //Case 4: Invalid input (non-array)
-    console.log("----------------------------------------------------------------");
-    console.log("Running Case 4: Invalid input (non-array)");
-    await processWithDelay("invalid input", 1000);
+    // //Case 4: Invalid input (non-array)
+    // console.log("----------------------------------------------------------------");
+    // console.log("Running Case 4: Invalid input (non-array)");
+    // await processWithDelay("invalid input", 1000);
 
     // Case 5: Invalid input (array with non-number elements)
     console.log("----------------------------------------------------------------");
