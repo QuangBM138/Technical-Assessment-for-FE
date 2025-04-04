@@ -90,7 +90,7 @@ function processWithDelay(numbers, delay, cancelToken) {
 }
 function runCases() {
     return __awaiter(this, void 0, void 0, function () {
-        var cancelToken, cancellationPromise;
+        var cancelToken, cancellationPromise, error_1, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -116,20 +116,39 @@ function runCases() {
                     return [4 /*yield*/, cancellationPromise];
                 case 3:
                     _a.sent();
-                    // //Case 4: Invalid input (non-array)
-                    // console.log("----------------------------------------------------------------");
-                    // console.log("Running Case 4: Invalid input (non-array)");
-                    // await processWithDelay("invalid input", 1000);
+                    //Case 4: Invalid input (non-array)
+                    console.log("----------------------------------------------------------------");
+                    console.log("Running Case 4: Invalid input (non-array)");
+                    _a.label = 4;
+                case 4:
+                    _a.trys.push([4, 6, , 7]);
+                    return [4 /*yield*/, processWithDelay("invalid input", 1000)];
+                case 5:
+                    _a.sent();
+                    return [3 /*break*/, 7];
+                case 6:
+                    error_1 = _a.sent();
+                    console.error(error_1.message);
+                    return [3 /*break*/, 7];
+                case 7:
                     // Case 5: Invalid input (array with non-number elements)
                     console.log("----------------------------------------------------------------");
                     console.log("Running Case 5: Invalid input (array with non-number elements)");
-                    return [4 /*yield*/, processWithDelay([1, "two", 3], 1000)];
-                case 4:
+                    _a.label = 8;
+                case 8:
+                    _a.trys.push([8, 10, , 11]);
+                    return [4 /*yield*/, processWithDelay([1, "two", 3])];
+                case 9:
                     _a.sent();
-                    return [2 /*return*/];
+                    return [3 /*break*/, 11];
+                case 10:
+                    error_2 = _a.sent();
+                    console.error(error_2.message);
+                    return [3 /*break*/, 11];
+                case 11: return [2 /*return*/];
             }
         });
     });
 }
 // Run all cases sequentially
-runCases().catch(function (error) { return console.error("Error:", error.message); });
+runCases(); //.catch((error) => console.error("Error:", error.message));

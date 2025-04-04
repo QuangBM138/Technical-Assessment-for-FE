@@ -63,19 +63,25 @@ async function runCases() {
     }, 2500);
     await cancellationPromise;
 
-    // //Case 4: Invalid input (non-array)
-    // console.log("----------------------------------------------------------------");
-    // console.log("Running Case 4: Invalid input (non-array)");
-    // await processWithDelay("invalid input", 1000);
-
+    //Case 4: Invalid input (non-array)
+    console.log("----------------------------------------------------------------");
+    console.log("Running Case 4: Invalid input (non-array)");
+    try {
+        await processWithDelay("invalid input", 1000);
+    } catch (error) {
+        console.error(error.message);
+    }
     // Case 5: Invalid input (array with non-number elements)
     console.log("----------------------------------------------------------------");
     console.log("Running Case 5: Invalid input (array with non-number elements)");
-    await processWithDelay([1, "two", 3], 1000);
+    try {
+        await processWithDelay([1, "two", 3]);
+    } catch (error) {
+        console.error(error.message);
+    }
 
 }
 
 // Run all cases sequentially
-runCases().catch((error) => console.error("Error:", error.message));
-
+runCases();
 
