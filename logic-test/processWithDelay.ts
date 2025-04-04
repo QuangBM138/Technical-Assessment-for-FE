@@ -1,19 +1,22 @@
 type CancelToken = { cancelled: boolean };
-
+type Delay = number | 1000;
 async function processWithDelay(
     numbers: number[],
-    delay: number = 1000,
-    onProgress?: (processed: number, total: number) => void,
-    cancelToken?: CancelToken
+    delay?: Delay,
+    cancelToken?: CancelToken,
 ): Promise<void> {
     // Handle invalid inputs
     if (!Array.isArray(numbers)) {
-        throw new Error("Invalid input: Expected an array of numbers.");
+        // throw new Error("Invalid input: Expected an array of numbers.");
+        console.log("Invalid input: Expected an array of numbers.");
+        return Promise.resolve(); // Exit the function if invalid input is found
     }
 
     for (const num of numbers) {
         if (typeof num !== "number") {
-            throw new Error("Invalid input: Array must contain only numbers.");
+            // throw new Error("Invalid input: Array must contain only numbers.");
+            console.log("Invalid input: Array must contain only numbers.");
+            return Promise.resolve(); // Exit the function if invalid input is found
         }
     }
 
@@ -35,41 +38,45 @@ async function processWithDelay(
         console.log(numbers[i]);
 
         // Report progress
-        onProgress?.(i + 1, total);
-
+        const processed = i + 1;
+        console.log(`Progress: ${processed}/${total}`);
         // Delay before processing the next number
         await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
     console.log("All numbers processed!");
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
 async function runCases() {
     // Case 1: Normal execution
     console.log("Running Case 1: Normal execution");
-    await processWithDelay([1, 2, 3, 4, 5], 1000, (processed, total) => console.log(`Progress: ${processed}/${total}`));
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await processWithDelay([1, 2, 3, 4, 5], 1000);
     console.log("----------------------------------------------------------------");
-    // Show "ready for case 2" and wait 1 second
-    console.log("Ready for case 2");
-    await new Promise((resolve) => setTimeout(resolve, 1000));
     // Case 2: Empty array
     console.log("Running Case 2: Empty array");
     await processWithDelay([], 1000);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     console.log("----------------------------------------------------------------");
-    // Wait 1 second before case 3
-    console.log("Ready for case 3");
-    await new Promise((resolve) => setTimeout(resolve, 1000));
     // Case 3: Cancellation
     console.log("Running Case 3: Cancellation");
     const cancelToken: CancelToken = { cancelled: false };
-    const cancellationPromise = processWithDelay([1, 2, 3, 4, 5], 1000, undefined, cancelToken);
+    const cancellationPromise = processWithDelay([1, 2, 3, 4, 5], 1000, cancelToken);
     setTimeout(() => {
         cancelToken.cancelled = true;
     }, 2500);
     await cancellationPromise;
+
+    //Case 4: Invalid input (non-array)
+    console.log("----------------------------------------------------------------");
+    console.log("Running Case 4: Invalid input (non-array)");
+    await processWithDelay("invalid input", 1000);
+
+    // Case 5: Invalid input (array with non-number elements)
+    console.log("----------------------------------------------------------------");
+    console.log("Running Case 5: Invalid input (array with non-number elements)");
+    await processWithDelay([1, "two", 3], 1000);
+
 }
 
 // Run all cases sequentially

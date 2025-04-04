@@ -34,21 +34,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-function processWithDelay(numbers_1) {
-    return __awaiter(this, arguments, void 0, function (numbers, delay, onProgress, cancelToken) {
-        var _i, numbers_2, num, total, i;
-        if (delay === void 0) { delay = 1000; }
+function processWithDelay(numbers, delay, cancelToken) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _i, numbers_1, num, total, i, processed;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     // Handle invalid inputs
                     if (!Array.isArray(numbers)) {
-                        throw new Error("Invalid input: Expected an array of numbers.");
+                        // throw new Error("Invalid input: Expected an array of numbers.");
+                        console.log("Invalid input: Expected an array of numbers.");
+                        return [2 /*return*/, Promise.resolve()]; // Exit the function if invalid input is found
                     }
-                    for (_i = 0, numbers_2 = numbers; _i < numbers_2.length; _i++) {
-                        num = numbers_2[_i];
+                    for (_i = 0, numbers_1 = numbers; _i < numbers_1.length; _i++) {
+                        num = numbers_1[_i];
                         if (typeof num !== "number") {
-                            throw new Error("Invalid input: Array must contain only numbers.");
+                            // throw new Error("Invalid input: Array must contain only numbers.");
+                            console.log("Invalid input: Array must contain only numbers.");
+                            return [2 /*return*/, Promise.resolve()]; // Exit the function if invalid input is found
                         }
                     }
                     // Handle empty arrays gracefully
@@ -68,8 +71,8 @@ function processWithDelay(numbers_1) {
                     }
                     // Process the current number
                     console.log(numbers[i]);
-                    // Report progress
-                    onProgress === null || onProgress === void 0 ? void 0 : onProgress(i + 1, total);
+                    processed = i + 1;
+                    console.log("Progress: ".concat(processed, "/").concat(total));
                     // Delay before processing the next number
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, delay); })];
                 case 2:
@@ -81,6 +84,9 @@ function processWithDelay(numbers_1) {
                     return [3 /*break*/, 1];
                 case 4:
                     console.log("All numbers processed!");
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1000); })];
+                case 5:
+                    _a.sent();
                     return [2 /*return*/];
             }
         });
@@ -94,41 +100,37 @@ function runCases() {
                 case 0:
                     // Case 1: Normal execution
                     console.log("Running Case 1: Normal execution");
-                    return [4 /*yield*/, processWithDelay([1, 2, 3, 4, 5], 1000, function (processed, total) { return console.log("Progress: ".concat(processed, "/").concat(total)); })];
+                    return [4 /*yield*/, processWithDelay([1, 2, 3, 4, 5], 1000)];
                 case 1:
                     _a.sent();
-                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1000); })];
-                case 2:
-                    _a.sent();
                     console.log("----------------------------------------------------------------");
-                    // Show "ready for case 2" and wait 1 second
-                    console.log("Ready for case 2");
-                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1000); })];
-                case 3:
-                    _a.sent();
                     // Case 2: Empty array
                     console.log("Running Case 2: Empty array");
                     return [4 /*yield*/, processWithDelay([], 1000)];
-                case 4:
-                    _a.sent();
-                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1000); })];
-                case 5:
+                case 2:
                     _a.sent();
                     console.log("----------------------------------------------------------------");
-                    // Wait 1 second before case 3
-                    console.log("Ready for case 3");
-                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1000); })];
-                case 6:
-                    _a.sent();
                     // Case 3: Cancellation
                     console.log("Running Case 3: Cancellation");
                     cancelToken = { cancelled: false };
-                    cancellationPromise = processWithDelay([1, 2, 3, 4, 5], 1000, undefined, cancelToken);
+                    cancellationPromise = processWithDelay([1, 2, 3, 4, 5], 1000, cancelToken);
                     setTimeout(function () {
                         cancelToken.cancelled = true;
                     }, 2500);
                     return [4 /*yield*/, cancellationPromise];
-                case 7:
+                case 3:
+                    _a.sent();
+                    //Case 4: Invalid input (non-array)
+                    console.log("----------------------------------------------------------------");
+                    console.log("Running Case 4: Invalid input (non-array)");
+                    return [4 /*yield*/, processWithDelay("invalid input", 1000)];
+                case 4:
+                    _a.sent();
+                    // Case 5: Invalid input (array with non-number elements)
+                    console.log("----------------------------------------------------------------");
+                    console.log("Running Case 5: Invalid input (array with non-number elements)");
+                    return [4 /*yield*/, processWithDelay([1, "two", 3], 1000)];
+                case 5:
                     _a.sent();
                     return [2 /*return*/];
             }
