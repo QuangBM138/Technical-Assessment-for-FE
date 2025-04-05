@@ -1,16 +1,43 @@
 <template>
     <div>
+        <div class="filter-container">
+            <!-- Search Input -->
+            <div class="filter-input-wrapper">
+                <input type="text" v-model="filterQuery" placeholder="Search by name or email..."
+                    class="filter-input" />
+                <Icon icon="material-symbols:close" class="clear-icon" v-if="filterQuery" @click="clearSearch" />
+            </div>
+
+            <!-- Dark Mode Toggle -->
+            <Icon :icon="isDarkMode ? 'material-symbols:dark-mode' : 'material-symbols:light-mode'" class="toggle-icon"
+                @click="toggleDarkMode" />
+        </div>
         <table class="table">
             <thead>
                 <tr>
                     <th class="col-checkbox">
                         <input type="checkbox" @change="toggleSelectAll" />
                     </th>
-                    <th class="col-name">Name</th>
-                    <th class="col-balance">Balance($)</th>
-                    <th class="col-email">Email</th>
-                    <th class="col-registration">Registration</th>
-                    <th class="col-status">Status</th>
+                    <th class="col-name">
+                        Name
+                        <Icon :icon="getSortIcon('name')" class="sort-icon" @click="sortTable('name')" />
+                    </th>
+                    <th class="col-balance">
+                        Balance
+                        <Icon :icon="getSortIcon('balance')" class="sort-icon" @click="sortTable('balance')" />
+                    </th>
+                    <th class="col-email">
+                        Email
+                        <Icon :icon="getSortIcon('email')" class="sort-icon" @click="sortTable('email')" />
+                    </th>
+                    <th class="col-registration">
+                        Registration
+                        <Icon :icon="getSortIcon('registerAt')" class="sort-icon" @click="sortTable('registerAt')" />
+                    </th>
+                    <th class="col-status">
+                        Status
+                        <Icon :icon="getSortIcon('active')" class="sort-icon" @click="sortTable('active')" />
+                    </th>
                     <th class="col-action">Action</th>
                 </tr>
             </thead>
@@ -65,7 +92,7 @@
 
 <script setup lang="ts">
 import Swal from 'sweetalert2';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
 
 interface TUser {
@@ -95,9 +122,46 @@ const currentPage = ref(1);
 
 const totalPages = computed(() => Math.ceil(users.value.length / rowsPerPage.value));
 
+const filterQuery = ref<string>('');
+
+const filteredUsers = computed(() => {
+    let result = users.value;
+
+    // Apply filtering
+    if (filterQuery.value) {
+        const query = filterQuery.value.toLowerCase();
+        result = result.filter(user =>
+            user.name.toLowerCase().includes(query) ||
+            user.email.toLowerCase().includes(query)
+        );
+    }
+
+    // Apply sorting
+    if (sortKey.value) {
+        result = [...result].sort((a, b) => {
+            const aValue = a[sortKey.value as keyof TUser];
+            const bValue = b[sortKey.value as keyof TUser];
+
+            // Natural sorting for strings
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                return sortOrder.value === 'asc'
+                    ? aValue.localeCompare(bValue, undefined, { numeric: true })
+                    : bValue.localeCompare(aValue, undefined, { numeric: true });
+            }
+
+            // Regular sorting for numbers or other types
+            if (aValue < bValue) return sortOrder.value === 'asc' ? -1 : 1;
+            if (aValue > bValue) return sortOrder.value === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+
+    return result;
+});
+
 const paginatedUsers = computed(() => {
     const start = (currentPage.value - 1) * rowsPerPage.value;
-    return users.value.slice(start, start + rowsPerPage.value);
+    return filteredUsers.value.slice(start, start + rowsPerPage.value);
 });
 
 // Selected users state
@@ -109,6 +173,30 @@ const toggleSelectAll = (event: Event) => {
         selectedUsers.value = paginatedUsers.value.map(user => user.id);
     } else {
         selectedUsers.value = [];
+    }
+};
+
+// Sorting state
+const sortKey = ref<string | null>(null);
+const sortOrder = ref<'asc' | 'desc'>('asc');
+
+const getSortIcon = (key: string) => {
+    if (sortKey.value === key) {
+        return sortOrder.value === 'asc'
+            ? 'material-symbols:arrow-upward'
+            : 'material-symbols:arrow-downward';
+    }
+    return 'flowbite:sort-outline';
+};
+
+const sortTable = (key: string) => {
+    if (sortKey.value === key) {
+        // Toggle sort order
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        // Set new sort key and default to ascending order
+        sortKey.value = key;
+        sortOrder.value = 'asc';
     }
 };
 
@@ -219,9 +307,29 @@ const formatDate = (date: Date) => {
     const day = String(date.getDate()).padStart(2, '0'); // Thêm số 0 nếu cần
     return `${year}-${month}-${day}`;
 };
+
+// Clear search query
+const clearSearch = () => {
+    filterQuery.value = '';
+};
+
+// Dark mode state
+const isDarkMode = ref(false);
+
+const toggleDarkMode = () => {
+    isDarkMode.value = !isDarkMode.value;
+    document.body.classList.toggle('dark-mode', isDarkMode.value);
+    localStorage.setItem('darkMode', isDarkMode.value.toString());
+};
+
+onMounted(() => {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    isDarkMode.value = savedDarkMode;
+    document.body.classList.toggle('dark-mode', savedDarkMode);
+});
 </script>
 
-<style scoped>
+<style>
 /* Table styles */
 .table {
     width: 100%;
@@ -333,7 +441,7 @@ a:hover {
 }
 
 .edit-icon:hover {
-    color: #007bff;
+    color: #93ffe0;
     /* Màu xanh cho biểu tượng chỉnh sửa */
 }
 
@@ -376,5 +484,107 @@ a:hover {
 .pagination-controls button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+
+/* Sort icon styles */
+.sort-icon {
+    font-size: 16px;
+    margin-left: 8px;
+    cursor: pointer;
+    color: #6c757d;
+    transition: color 0.3s ease;
+}
+
+.sort-icon:hover {
+    color: #93ffe0;
+}
+
+
+/* Wrapper for the search input and icons */
+.filter-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filter-input-wrapper {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    overflow: hidden;
+    margin-left: 1rem;
+    width: 300px;
+}
+
+.filter-input {
+    flex: 1;
+    border: none;
+    padding: 0.5rem;
+    font-size: 1rem;
+    background-color: transparent;
+    outline: none;
+}
+
+.clear-icon {
+    font-size: 20px;
+    color: #dc3545;
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+body.dark-mode .table th,
+body.dark-mode .table td {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+body.dark-mode .filter-input-wrapper {
+    background-color: #333333;
+    border-color: #444444;
+}
+
+body.dark-mode .filter-input {
+    color: #ffffff;
+}
+
+body.dark-mode .pagination-controls button {
+    background-color: #333333;
+    border-color: #444444;
+    color: #ffffff;
+}
+
+body.dark-mode .pagination-controls button.active {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+.toggle-icon {
+    font-size: 45px;
+    cursor: pointer;
+    color: #6c757d;
+    margin-right: 1rem;
+    transition: color 0.3s ease;
+}
+
+.toggle-icon:hover {
+    color: #93ffe0;
+}
+
+body.dark-mode .toggle-icon {
+    color: #ffffff;
+}
+
+body.dark-mode .toggle-icon:hover {
+    color: #93ffe0;
+    ;
 }
 </style>
