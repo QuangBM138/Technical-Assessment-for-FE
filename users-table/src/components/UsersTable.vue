@@ -8,9 +8,11 @@
                 <Icon icon="material-symbols:close" class="clear-icon" v-if="filterQuery" @click="clearSearch" />
             </div>
 
+
             <!-- Dark Mode Toggle -->
             <Icon :icon="isDarkMode ? 'material-symbols:dark-mode' : 'material-symbols:light-mode'" class="toggle-icon"
                 @click="toggleDarkMode" />
+            <Icon icon="ph:mouse-scroll" class="mode-toggle-button" @click="toggleMode" />
         </div>
         <table class="table">
             <thead>
@@ -42,7 +44,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="user in paginatedUsers" :key="user.id">
+                <tr v-for="user in (isInfiniteScroll ? visibleUsers : paginatedUsers)" :key="user.id">
                     <td class="col-checkbox">
                         <input type="checkbox" v-model="selectedUsers" :value="user.id" />
                     </td>
@@ -69,10 +71,12 @@
                     </td>
                 </tr>
             </tbody>
+            <!-- Sentinel for infinite scroll -->
+            <div v-if="isInfiniteScroll" ref="sentinel" class="sentinel"></div>
         </table>
 
         <!-- Pagination Controls -->
-        <div class="pagination">
+        <div class="pagination" v-if="!isInfiniteScroll">
             <div class="results-count">{{ users.length }} results</div>
             <div class="pagination-controls">
                 <button @click="currentPage--" :disabled="currentPage === 1">&lt;</button>
@@ -86,14 +90,16 @@
                 <button @click="currentPage++" :disabled="currentPage === totalPages">&gt;</button>
             </div>
         </div>
-
     </div>
 </template>
 
 <script setup lang="ts">
 import Swal from 'sweetalert2';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { Icon } from '@iconify/vue';
+import { watch } from 'vue';
+
+
 
 interface TUser {
     id: string;
@@ -156,6 +162,7 @@ const filteredUsers = computed(() => {
         });
     }
 
+    updateVisibleUsers(); // Cập nhật danh sách hiển thị
     return result;
 });
 
@@ -198,6 +205,7 @@ const sortTable = (key: string) => {
         sortKey.value = key;
         sortOrder.value = 'asc';
     }
+    updateVisibleUsers();
 };
 
 // Pagination logic for visible pages
@@ -263,6 +271,8 @@ const editUser = (userId: string) => {
                 user.email = result.value.email;
                 user.balance = result.value.balance;
 
+                // updateVisibleUsers(); // Cập nhật danh sách hiển thị
+
                 Swal.fire({
                     title: 'Updated!',
                     text: `${user.name}'s information has been updated.`,
@@ -288,6 +298,8 @@ const deleteUser = (userId: string) => {
         }).then(result => {
             if (result.isConfirmed) {
                 users.value = users.value.filter(user => user.id !== userId);
+                // updateVisibleUsers(); // Cập nhật danh sách hiển thị
+
                 Swal.fire({
                     title: 'Deleted!',
                     text: `${user.name} has been deleted.`,
@@ -326,6 +338,82 @@ onMounted(() => {
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
     isDarkMode.value = savedDarkMode;
     document.body.classList.toggle('dark-mode', savedDarkMode);
+});
+
+const isInfiniteScroll = ref(false); // Trạng thái chế độ (mặc định là phân trang)
+
+// Infinite scroll observer// Infinite scroll observer
+let observer: IntersectionObserver | null = null;
+
+const visibleUsers = ref<TUser[]>([]);
+
+const setupObserver = () => {
+    const sentinel = document.querySelector('.sentinel');
+    if (!sentinel) return;
+
+    observer = new IntersectionObserver(
+        (entries) => {
+            if (entries[0].isIntersecting) {
+                loadMoreUsers();
+            }
+        },
+        {
+            root: null, // Sử dụng viewport làm root
+            rootMargin: '0px', // Kích hoạt ngay khi sentinel vào viewport
+            threshold: 1.0, // Yêu cầu sentinel hoàn toàn hiển thị để kích hoạt
+        }
+    );
+
+    observer.observe(sentinel);
+};
+
+const loadMoreUsers = () => {
+    const start = visibleUsers.value.length;
+    const end = start + rowsPerPage.value;
+
+    if (start < filteredUsers.value.length) {
+        const newUsers = filteredUsers.value.slice(start, end);
+        visibleUsers.value = [...visibleUsers.value, ...newUsers];
+    }
+};
+
+const updateVisibleUsers = () => {
+    if (isInfiniteScroll.value) {
+        visibleUsers.value = filteredUsers.value.slice(0, rowsPerPage.value);
+    }
+};
+
+watch(filterQuery, () => {
+    updateVisibleUsers();
+});
+// Chuyển đổi giữa chế độ phân trang và infinite scroll
+const toggleMode = () => {
+    isInfiniteScroll.value = !isInfiniteScroll.value;
+
+    if (isInfiniteScroll.value) {
+        visibleUsers.value = filteredUsers.value.slice(0, rowsPerPage.value);
+        nextTick(() => {
+            setupObserver();
+        });
+    } else {
+        if (observer) observer.disconnect();
+        visibleUsers.value = [];
+    }
+};
+
+onMounted(() => {
+    if (isInfiniteScroll.value) {
+        nextTick(() => {
+            setupObserver();
+        });
+    }
+});
+
+onUnmounted(() => {
+    if (observer) {
+        observer.disconnect();
+        observer = null;
+    }
 });
 </script>
 
@@ -585,6 +673,25 @@ body.dark-mode .toggle-icon {
 
 body.dark-mode .toggle-icon:hover {
     color: #93ffe0;
-    ;
+}
+
+.mode-toggle-button {
+    margin-left: 1rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.mode-toggle-button:hover {
+    background-color: #93ffe0;
+    color: #ffffff;
+}
+
+.sentinel {
+    height: 20px;
 }
 </style>
