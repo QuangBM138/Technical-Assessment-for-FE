@@ -12,8 +12,6 @@
                 <Icon icon="material-symbols:close" class="clear-icon" v-if="filterQuery" @click="clearSearch" />
             </div>
 
-
-
             <div class="icon-container">
                 <div :title="(isInfiniteScroll ? 'Pagination' : 'Infinite Scroll')">
                     <Icon icon="ph:mouse-scroll" class="mode-toggle-button" @click="toggleMode" />
@@ -282,24 +280,32 @@ const visiblePages = computed(() => {
 });
 
 // Action handlers
-const editUser = (userId: string) => {
+const editUser = async (userId: string) => {
     const user = users.value.find(user => user.id === userId);
     if (user) {
         Swal.fire({
             title: 'Edit User',
             html: `
-                <div style="text-align: left;">
-                    <label for="edit-name">Name:</label>
-                    <input id="edit-name" class="swal2-input" value="${user.name}" />
-                    
-                    <label for="edit-email">Email:</label>
-                    <input id="edit-email" class="swal2-input" value="${user.email}" />
-                    
-                    <label for="edit-balance">Balance:</label>
-                    <input id="edit-balance" type="number" class="swal2-input" value="${user.balance}" />
-                    
-                    <label for="edit-active">Active:</label>
-                    <input id="edit-active" type="checkbox" ${user.active ? 'checked' : ''} />
+                <div class="form-container">
+                    <div class="form-group">
+                        <label for="edit-name">Name:</label>
+                        <input id="edit-name" class="form-input" type="text" value="${user.name}" />
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-balance">Balance:</label>
+                        <input id="edit-balance" class="form-input" type="number" value="${user.balance}" />
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-email">Email:</label>
+                        <input id="edit-email" class="form-input" type="email" value="${user.email}" />
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-active">Active:</label>
+                        <select id="edit-active" class="form-input">
+                            <option value="true" ${user.active ? 'selected' : ''}>Active</option>
+                            <option value="false" ${!user.active ? 'selected' : ''}>Inactive</option>
+                        </select>
+                    </div>
                 </div>
             `,
             focusConfirm: false,
@@ -308,30 +314,55 @@ const editUser = (userId: string) => {
             cancelButtonText: 'Cancel',
             preConfirm: () => {
                 const name = (document.getElementById('edit-name') as HTMLInputElement).value;
-                const email = (document.getElementById('edit-email') as HTMLInputElement).value;
                 const balance = parseFloat((document.getElementById('edit-balance') as HTMLInputElement).value);
-                const active = (document.getElementById('edit-active') as HTMLInputElement).checked;
+                const email = (document.getElementById('edit-email') as HTMLInputElement).value;
+                const active = (document.getElementById('edit-active') as HTMLSelectElement).value === 'true';
 
                 if (!name || !email || isNaN(balance)) {
                     Swal.showValidationMessage('Please fill out all fields correctly.');
                     return null;
                 }
-                return { name, email, balance, active };
-            },
-        }).then(result => {
-            if (result.isConfirmed && result.value) {
-                // Cập nhật dữ liệu người dùng
-                user.name = result.value.name;
-                user.email = result.value.email;
-                user.balance = result.value.balance;
-                user.active = result.value.active;
 
-                Swal.fire({
-                    title: 'Updated!',
-                    text: `${user.name}'s information has been updated.`,
-                    icon: 'success',
-                    confirmButtonText: 'OK',
-                });
+                return { name, balance, email, active };
+            },
+        }).then(async result => {
+            if (result.isConfirmed && result.value) {
+                try {
+                    // Gửi yêu cầu cập nhật đến API
+                    const response = await fetch(`https://67f1121fc733555e24ac15eb.mockapi.io/api/users/users/${userId}`, {
+                        method: 'PUT', // Hoặc 'PATCH' nếu chỉ cập nhật một phần
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(result.value),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to update user: ${response.statusText}`);
+                    }
+
+                    const updatedUser = await response.json();
+
+                    // Cập nhật dữ liệu cục bộ
+                    user.name = updatedUser.name;
+                    user.balance = updatedUser.balance;
+                    user.email = updatedUser.email;
+                    user.active = updatedUser.active;
+
+                    Swal.fire({
+                        title: 'Updated!',
+                        text: `${user.name}'s information has been updated.`,
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                    });
+                } catch (error: any) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: error.message || 'Failed to update user.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                    });
+                }
             }
         });
     }
@@ -493,7 +524,7 @@ watch(errorMessage, (newValue) => {
     height: 100%;
     border-collapse: collapse;
     margin-bottom: 1rem;
-    font-family: 'Roboto', sans-serif;
+    /* font-family: 'Roboto', sans-serif; */
 }
 
 .table th,
@@ -618,7 +649,7 @@ a:hover {
     font-size: 0.875rem;
     color: #555;
     font-weight: bold;
-    font-family: 'Roboto', sans-serif;
+    /* font-family: 'Roboto', sans-serif; */
     margin-left: 1rem;
 }
 
@@ -780,5 +811,57 @@ body.dark-mode .toggle-icon:hover {
     color: #6c757d;
     font-size: 6rem;
     /* Màu xám nhạt */
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+/* SweetAlert form container */
+.form-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Form group styling */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Form input styling */
+.form-input {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fff;
+    appearance: none;
+    /* Loại bỏ mũi tên mặc định trên một số trình duyệt */
+}
+
+.form-input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Checkbox styling */
+.form-checkbox {
+    width: 20px;
+    height: 20px;
+    margin-top: 0.5rem;
+}
+
+/* Label styling */
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #333;
 }
 </style>
