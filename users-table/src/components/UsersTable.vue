@@ -30,9 +30,9 @@
                         </span>
                     </td>
                     <td>
-                        <span :class="['status-badge', user.active ? 'active' : 'inactive']">
+                        <button :class="['status-button', user.active ? 'active' : 'inactive']">
                             {{ user.active ? 'Active' : 'Inactive' }}
-                        </span>
+                        </button>
                     </td>
                     <td>
                         <button @click="editUser(user.id)" class="action-btn edit-btn">Edit</button>
@@ -75,7 +75,7 @@ interface TUser {
 
 // Generate sample data
 const users = ref<TUser[]>(
-    Array.from({ length: 105 }, (_, i) => ({
+    Array.from({ length: 106 }, (_, i) => ({
         id: `user-${i + 1}`,
         name: `User ${i + 1}`,
         balance: Math.floor(Math.random() * 100000) / 100,
@@ -111,19 +111,20 @@ const toggleSelectAll = (event: Event) => {
 // Pagination logic for visible pages
 const visiblePages = computed(() => {
     const pages: (number | string)[] = [];
-    const maxVisible = 5;
+    const maxVisible = 6;
+    const totalPagesCount = totalPages.value;
 
-    if (totalPages.value <= maxVisible) {
-        for (let i = 1; i <= totalPages.value; i++) {
+    if (totalPagesCount <= maxVisible) {
+        for (let i = 1; i <= totalPagesCount; i++) {
             pages.push(i);
         }
     } else {
         if (currentPage.value <= 3) {
-            pages.push(1, 2, 3, 4, '...', totalPages.value);
-        } else if (currentPage.value >= totalPages.value - 2) {
-            pages.push(1, '...', totalPages.value - 3, totalPages.value - 2, totalPages.value - 1, totalPages.value);
+            pages.push(1, 2, 3, 4, '...', totalPagesCount - 1, totalPagesCount);
+        } else if (currentPage.value >= totalPagesCount - 2) {
+            pages.push(1, 2, '...', totalPagesCount - 3, totalPagesCount - 2, totalPagesCount - 1, totalPagesCount);
         } else {
-            pages.push(1, '...', currentPage.value - 1, currentPage.value, currentPage.value + 1, '...', totalPages.value);
+            pages.push(1, 2, '...', currentPage.value - 1, currentPage.value, currentPage.value + 1, '...', totalPagesCount - 1, totalPagesCount);
         }
     }
 
@@ -150,18 +151,20 @@ const formatDate = (date: Date) => date.toISOString().split('T')[0];
 table {
     width: 100%;
     border-collapse: collapse;
+    /* margin-top: 2rem; */
     margin-bottom: 1rem;
+    font-family: 'Roboto', sans-serif;
 }
 
 th,
 td {
-    border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
+    background-color: #f8fafb;
 }
 
 th {
-    background-color: #f4f4f4;
+    background-color: #ffffff;
 }
 
 .status-badge {
@@ -181,6 +184,30 @@ th {
 .status-badge.inactive {
     background-color: #dc3545;
     /* Red for inactive */
+}
+
+.status-button {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background-color: transparent;
+    color: #333;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: default;
+    text-align: center;
+    outline: none;
+}
+
+.status-button.active {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.status-button.inactive {
+    border-color: #dc3545;
+    color: #dc3545;
 }
 
 .action-btn {
