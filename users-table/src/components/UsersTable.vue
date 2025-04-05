@@ -225,6 +225,7 @@ const formatDate = (date: Date) => {
 /* Table styles */
 .table {
     width: 100%;
+    height: 100%;
     border-collapse: collapse;
     margin-bottom: 1rem;
     font-family: 'Roboto', sans-serif;
@@ -232,7 +233,7 @@ const formatDate = (date: Date) => {
 
 .table th,
 .table td {
-    padding: 8px;
+    padding: 1rem;
     text-align: left;
     background-color: #f8fafb;
 }
@@ -300,7 +301,7 @@ a:hover {
 /* Status button styles */
 .status-button {
     display: inline-block;
-    padding: 0.25rem 0.75rem;
+    padding: 0.25rem 0.5rem;
     border: 1px solid #ccc;
     border-radius: 20px;
     background-color: transparent;
