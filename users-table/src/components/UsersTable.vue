@@ -9,10 +9,18 @@
             </div>
 
 
-            <!-- Dark Mode Toggle -->
-            <Icon :icon="isDarkMode ? 'material-symbols:dark-mode' : 'material-symbols:light-mode'" class="toggle-icon"
-                @click="toggleDarkMode" />
-            <Icon icon="ph:mouse-scroll" class="mode-toggle-button" @click="toggleMode" />
+
+            <div class="icon-container">
+                <div :title="(isInfiniteScroll ? 'Pagination' : 'Infinite Scroll')">
+                    <Icon icon="ph:mouse-scroll" class="mode-toggle-button" @click="toggleMode" />
+                </div>
+
+                <div :title="` ${isDarkMode ? 'Light' : 'Dark'} mode`">
+                    <!-- Dark Mode Toggle -->
+                    <Icon :icon="isDarkMode ? 'material-symbols:light-mode' : 'material-symbols:dark-mode'"
+                        class="toggle-icon" @click="toggleDarkMode" />
+                </div>
+            </div>
         </div>
         <table class="table">
             <thead>
@@ -659,7 +667,6 @@ body.dark-mode .pagination-controls button.active {
     font-size: 45px;
     cursor: pointer;
     color: #6c757d;
-    margin-right: 1rem;
     transition: color 0.3s ease;
 }
 
@@ -676,14 +683,8 @@ body.dark-mode .toggle-icon:hover {
 }
 
 .mode-toggle-button {
-    margin-left: 1rem;
-    padding: 0.5rem 1rem;
-    border: 1px solid #ddd;
-    background-color: #f8f9fa;
+    font-size: 40px;
     cursor: pointer;
-    border-radius: 4px;
-    font-size: 1rem;
-    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .mode-toggle-button:hover {
@@ -693,5 +694,12 @@ body.dark-mode .toggle-icon:hover {
 
 .sentinel {
     height: 20px;
+}
+
+.icon-container {
+    display: flex;
+    width: 100px;
+    margin-right: 1rem;
+    justify-content: space-between;
 }
 </style>
