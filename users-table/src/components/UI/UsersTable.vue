@@ -1,5 +1,9 @@
 <template>
-    <div>
+    <div v-if="isLoading" class="loading-spinner">
+        <Icon icon="eos-icons:bubble-loading" class="spinner" />
+    </div>
+    <div v-if="!isLoading && !errorMessage">
+
         <div class="filter-container">
             <!-- Search Input -->
             <div class="filter-input-wrapper">
@@ -26,7 +30,7 @@
             <thead>
                 <tr>
                     <th class="col-checkbox">
-                        <input type="checkbox" @change="toggleSelectAll" />
+                        <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
                     </th>
                     <th class="col-name">
                         Name
@@ -108,7 +112,6 @@ import { Icon } from '@iconify/vue';
 import { watch } from 'vue';
 
 
-
 interface TUser {
     id: string;
     name: string;
@@ -118,17 +121,38 @@ interface TUser {
     active: boolean;
 }
 
-// Generate sample data
-const users = ref<TUser[]>(
-    Array.from({ length: 106 }, (_, i) => ({
-        id: `user-${i + 1}`,
-        name: `User ${i + 1}`,
-        balance: Math.floor(Math.random() * 100000) / 100,
-        email: `user${i + 1}@example.com`,
-        registerAt: new Date(Date.now() - Math.random() * 10000000000),
-        active: Math.random() > 0.5,
-    }))
-);
+// State
+const users = ref<TUser[]>([]);
+const isLoading = ref(false);
+const errorMessage = ref<string | null>(null);
+
+// Fetch data từ mock API
+const fetchUsers = async () => {
+    isLoading.value = true;
+    errorMessage.value = null;
+
+    try {
+        const response = await fetch('https://67f1121fc733555e24ac15eb.mockapi.io/api/users/users');
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        // Map dữ liệu từ API sang định dạng TUser
+        users.value = data.map((user: any) => ({
+            id: user.id,
+            name: user.name,
+            balance: parseFloat(user.balance),
+            email: user.email,
+            registerAt: new Date(user.registerAt * 1000), // Chuyển timestamp thành Date
+            active: user.active,
+        }));
+    } catch (error: any) {
+        errorMessage.value = error.message || 'Failed to fetch data.';
+    } finally {
+        isLoading.value = false; // Ẩn spinner
+    }
+};
 
 // Pagination state
 const rowsPerPage = ref(10);
@@ -184,12 +208,31 @@ const selectedUsers = ref<string[]>([]);
 
 const toggleSelectAll = (event: Event) => {
     const isChecked = (event.target as HTMLInputElement).checked;
-    if (isChecked) {
-        selectedUsers.value = paginatedUsers.value.map(user => user.id);
+
+    if (isInfiniteScroll.value) {
+        // Chọn tất cả người dùng hiển thị trong chế độ Infinite Scroll
+        if (isChecked) {
+            selectedUsers.value = visibleUsers.value.map(user => user.id);
+        } else {
+            selectedUsers.value = [];
+        }
     } else {
-        selectedUsers.value = [];
+        // Chọn tất cả người dùng hiển thị trong chế độ Pagination
+        if (isChecked) {
+            selectedUsers.value = paginatedUsers.value.map(user => user.id);
+        } else {
+            selectedUsers.value = [];
+        }
     }
 };
+
+const isAllSelected = computed(() => {
+    if (isInfiniteScroll.value) {
+        return visibleUsers.value.every(user => selectedUsers.value.includes(user.id));
+    } else {
+        return paginatedUsers.value.every(user => selectedUsers.value.includes(user.id));
+    }
+});
 
 // Sorting state
 const sortKey = ref<string | null>(null);
@@ -235,7 +278,6 @@ const visiblePages = computed(() => {
             pages.push(1, 2, '...', currentPage.value - 1, currentPage.value, currentPage.value + 1, '...', totalPagesCount - 1, totalPagesCount);
         }
     }
-
     return pages;
 });
 
@@ -255,6 +297,9 @@ const editUser = (userId: string) => {
                     
                     <label for="edit-balance">Balance:</label>
                     <input id="edit-balance" type="number" class="swal2-input" value="${user.balance}" />
+                    
+                    <label for="edit-active">Active:</label>
+                    <input id="edit-active" type="checkbox" ${user.active ? 'checked' : ''} />
                 </div>
             `,
             focusConfirm: false,
@@ -265,12 +310,13 @@ const editUser = (userId: string) => {
                 const name = (document.getElementById('edit-name') as HTMLInputElement).value;
                 const email = (document.getElementById('edit-email') as HTMLInputElement).value;
                 const balance = parseFloat((document.getElementById('edit-balance') as HTMLInputElement).value);
+                const active = (document.getElementById('edit-active') as HTMLInputElement).checked;
 
                 if (!name || !email || isNaN(balance)) {
                     Swal.showValidationMessage('Please fill out all fields correctly.');
                     return null;
                 }
-                return { name, email, balance };
+                return { name, email, balance, active };
             },
         }).then(result => {
             if (result.isConfirmed && result.value) {
@@ -278,8 +324,7 @@ const editUser = (userId: string) => {
                 user.name = result.value.name;
                 user.email = result.value.email;
                 user.balance = result.value.balance;
-
-                // updateVisibleUsers(); // Cập nhật danh sách hiển thị
+                user.active = result.value.active;
 
                 Swal.fire({
                     title: 'Updated!',
@@ -342,11 +387,6 @@ const toggleDarkMode = () => {
     localStorage.setItem('darkMode', isDarkMode.value.toString());
 };
 
-onMounted(() => {
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-    isDarkMode.value = savedDarkMode;
-    document.body.classList.toggle('dark-mode', savedDarkMode);
-});
 
 const isInfiniteScroll = ref(false); // Trạng thái chế độ (mặc định là phân trang)
 
@@ -391,9 +431,7 @@ const updateVisibleUsers = () => {
     }
 };
 
-watch(filterQuery, () => {
-    updateVisibleUsers();
-});
+
 // Chuyển đổi giữa chế độ phân trang và infinite scroll
 const toggleMode = () => {
     isInfiniteScroll.value = !isInfiniteScroll.value;
@@ -410,6 +448,12 @@ const toggleMode = () => {
 };
 
 onMounted(() => {
+    fetchUsers();
+
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    isDarkMode.value = savedDarkMode;
+    document.body.classList.toggle('dark-mode', savedDarkMode);
+
     if (isInfiniteScroll.value) {
         nextTick(() => {
             setupObserver();
@@ -421,6 +465,23 @@ onUnmounted(() => {
     if (observer) {
         observer.disconnect();
         observer = null;
+    }
+});
+
+watch(filterQuery, () => {
+    updateVisibleUsers();
+});
+
+watch(errorMessage, (newValue) => {
+    if (newValue) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: newValue,
+            confirmButtonText: 'OK',
+        }).then(() => {
+            errorMessage.value = null; // Reset errorMessage sau khi hiển thị
+        });
     }
 });
 </script>
@@ -556,6 +617,9 @@ a:hover {
 .results-count {
     font-size: 0.875rem;
     color: #555;
+    font-weight: bold;
+    font-family: 'Roboto', sans-serif;
+    margin-left: 1rem;
 }
 
 .pagination-controls {
@@ -701,5 +765,20 @@ body.dark-mode .toggle-icon:hover {
     width: 100px;
     margin-right: 1rem;
     justify-content: space-between;
+}
+
+/* Loading spinner styles */
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    /* Chiều cao toàn màn hình */
+}
+
+.loading-spinner .spinner {
+    color: #6c757d;
+    font-size: 6rem;
+    /* Màu xám nhạt */
 }
 </style>
