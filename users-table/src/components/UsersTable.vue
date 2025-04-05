@@ -1,42 +1,44 @@
 <template>
     <div>
-        <table>
+        <table class="table">
             <thead>
                 <tr>
-                    <th>
+                    <th class="col-checkbox">
                         <input type="checkbox" @change="toggleSelectAll" />
                     </th>
-                    <th>Name</th>
-                    <th>Balance($)</th>
-                    <th>Email</th>
-                    <th>Registration</th>
-                    <th>Status</th>
-                    <th>Action</th>
+                    <th class="col-name">Name</th>
+                    <th class="col-balance">Balance($)</th>
+                    <th class="col-email">Email</th>
+                    <th class="col-registration">Registration</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-action">Action</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="user in paginatedUsers" :key="user.id">
-                    <td>
+                    <td class="col-checkbox">
                         <input type="checkbox" v-model="selectedUsers" :value="user.id" />
                     </td>
-                    <td>{{ user.name }}</td>
-                    <td>{{ formatBalance(user.balance) }}</td>
-                    <td>
+                    <td class="col-name">{{ user.name }}</td>
+                    <td class="col-balance">{{ formatBalance(user.balance) }}</td>
+                    <td class="col-email">
                         <a :href="`mailto:${user.email}`">{{ user.email }}</a>
                     </td>
-                    <td>
+                    <td class="col-registration">
                         <span :title="user.registerAt.toLocaleString()">
                             {{ formatDate(user.registerAt) }}
                         </span>
                     </td>
-                    <td>
+                    <td class="col-status">
                         <button :class="['status-button', user.active ? 'active' : 'inactive']">
-                            {{ user.active ? 'Active' : 'Inactive' }}
+                            Status
                         </button>
                     </td>
-                    <td>
-                        <button @click="editUser(user.id)" class="action-btn edit-btn">Edit</button>
-                        <button @click="deleteUser(user.id)" class="action-btn delete-btn">Delete</button>
+                    <td class="col-action">
+                        <Icon icon="material-symbols:edit-outline" class="action-icon edit-icon"
+                            @click="editUser(user.id)" />
+                        <Icon icon="material-symbols:delete-outline" class="action-icon delete-icon"
+                            @click="deleteUser(user.id)" />
                     </td>
                 </tr>
             </tbody>
@@ -62,7 +64,9 @@
 </template>
 
 <script setup lang="ts">
+import Swal from 'sweetalert2';
 import { ref, computed } from 'vue';
+import { Icon } from '@iconify/vue';
 
 interface TUser {
     id: string;
@@ -133,59 +137,167 @@ const visiblePages = computed(() => {
 
 // Action handlers
 const editUser = (userId: string) => {
-    alert(`Edit user with ID: ${userId}`);
+    const user = users.value.find(user => user.id === userId);
+    if (user) {
+        Swal.fire({
+            title: 'Edit User',
+            html: `
+                <div style="text-align: left;">
+                    <label for="edit-name">Name:</label>
+                    <input id="edit-name" class="swal2-input" value="${user.name}" />
+                    
+                    <label for="edit-email">Email:</label>
+                    <input id="edit-email" class="swal2-input" value="${user.email}" />
+                    
+                    <label for="edit-balance">Balance:</label>
+                    <input id="edit-balance" type="number" class="swal2-input" value="${user.balance}" />
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Save',
+            cancelButtonText: 'Cancel',
+            preConfirm: () => {
+                const name = (document.getElementById('edit-name') as HTMLInputElement).value;
+                const email = (document.getElementById('edit-email') as HTMLInputElement).value;
+                const balance = parseFloat((document.getElementById('edit-balance') as HTMLInputElement).value);
+
+                if (!name || !email || isNaN(balance)) {
+                    Swal.showValidationMessage('Please fill out all fields correctly.');
+                    return null;
+                }
+                return { name, email, balance };
+            },
+        }).then(result => {
+            if (result.isConfirmed && result.value) {
+                // Cập nhật dữ liệu người dùng
+                user.name = result.value.name;
+                user.email = result.value.email;
+                user.balance = result.value.balance;
+
+                Swal.fire({
+                    title: 'Updated!',
+                    text: `${user.name}'s information has been updated.`,
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                });
+            }
+        });
+    }
 };
 
 const deleteUser = (userId: string) => {
-    if (confirm(`Are you sure you want to delete user with ID: ${userId}?`)) {
-        users.value = users.value.filter(user => user.id !== userId);
+    const user = users.value.find(user => user.id === userId);
+    if (user) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `Do you want to delete user: ${user.name}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!',
+        }).then(result => {
+            if (result.isConfirmed) {
+                users.value = users.value.filter(user => user.id !== userId);
+                Swal.fire({
+                    title: 'Deleted!',
+                    text: `${user.name} has been deleted.`,
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                });
+            }
+        });
     }
 };
 
 // Formatters
 const formatBalance = (balance: number) => `$${balance.toLocaleString()}`;
-const formatDate = (date: Date) => date.toISOString().split('T')[0];
+const formatDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Thêm số 0 nếu cần
+    const day = String(date.getDate()).padStart(2, '0'); // Thêm số 0 nếu cần
+    return `${year}-${month}-${day}`;
+};
 </script>
 
 <style scoped>
-table {
+/* Table styles */
+.table {
     width: 100%;
     border-collapse: collapse;
-    /* margin-top: 2rem; */
     margin-bottom: 1rem;
     font-family: 'Roboto', sans-serif;
 }
 
-th,
-td {
+.table th,
+.table td {
     padding: 8px;
     text-align: left;
     background-color: #f8fafb;
 }
 
-th {
+.table th {
     background-color: #ffffff;
+    font-weight: bold;
 }
 
-.status-badge {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    color: #fff;
-    font-size: 0.875rem;
+/* Column-specific styles */
+.col-checkbox {
+    width: 2%;
     text-align: center;
 }
 
-.status-badge.active {
-    background-color: #28a745;
-    /* Green for active */
+.col-name {
+    width: 15%;
 }
 
-.status-badge.inactive {
-    background-color: #dc3545;
-    /* Red for inactive */
+.col-balance {
+    width: 15%;
+    text-align: right;
 }
 
+.col-email {
+    width: 25%;
+}
+
+.col-registration {
+    width: 15%;
+}
+
+.col-status {
+    width: 20%;
+    text-align: center;
+}
+
+.col-action {
+    width: 8%;
+    text-align: center;
+}
+
+/* Checkbox styles */
+input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Email link styles */
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+a:hover {
+    background-color: #93ffe0;
+    color: #f0f8ff;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+/* Status button styles */
 .status-button {
     display: inline-block;
     padding: 0.25rem 0.75rem;
@@ -210,23 +322,23 @@ th {
     color: #dc3545;
 }
 
-.action-btn {
-    padding: 0.25rem 0.5rem;
-    margin-right: 0.5rem;
-    border: none;
-    border-radius: 0.25rem;
+/* Action icon styles */
+.action-icon {
+    font-size: 20px;
     cursor: pointer;
-    font-size: 0.875rem;
+    margin-right: 10px;
+    color: inherit;
+    transition: color 0.3s ease;
 }
 
-.edit-btn {
-    background-color: #007bff;
-    color: #fff;
+.edit-icon:hover {
+    color: #007bff;
+    /* Màu xanh cho biểu tượng chỉnh sửa */
 }
 
-.delete-btn {
-    background-color: #dc3545;
-    color: #fff;
+.delete-icon:hover {
+    color: #dc3545;
+    /* Màu đỏ cho biểu tượng xóa */
 }
 
 .pagination {
