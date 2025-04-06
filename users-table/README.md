@@ -27,3 +27,5 @@ yarn dev
 ```sh
 yarn build
 ```
+### Live Demo 
+https://technical-assessment-for-fe.vercel.app/
