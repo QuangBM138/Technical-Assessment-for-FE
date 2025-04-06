@@ -1,0 +1,346 @@
+/* Table styles */
+.table {
+    width: 100%;
+    height: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    /* font-family: 'Roboto', sans-serif; */
+}
+
+.table th,
+.table td {
+    padding: 1rem;
+    text-align: left;
+    background-color: #f8fafb;
+}
+
+.table th {
+    background-color: #ffffff;
+    font-weight: bold;
+}
+
+/* Column-specific styles */
+.col-checkbox {
+    width: 2%;
+    text-align: center;
+}
+
+.col-name {
+    width: 15%;
+}
+
+.col-balance {
+    width: 15%;
+    text-align: right;
+}
+
+.col-email {
+    width: 25%;
+}
+
+.col-registration {
+    width: 15%;
+}
+
+.col-status {
+    width: 20%;
+    text-align: center;
+}
+
+.col-action {
+    width: 8%;
+    text-align: center;
+}
+
+/* Checkbox styles */
+input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Email link styles */
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+a:hover {
+    background-color: #93ffe0;
+    color: #f0f8ff;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+/* Status button styles */
+.status-button {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background-color: transparent;
+    color: #333;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: default;
+    text-align: center;
+    outline: none;
+}
+
+.status-button.active {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.status-button.inactive {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+/* Action icon styles */
+.action-icon {
+    font-size: 20px;
+    cursor: pointer;
+    margin-right: 10px;
+    color: inherit;
+    transition: color 0.3s ease;
+}
+
+.edit-icon:hover {
+    color: #93ffe0;
+    /* Màu xanh cho biểu tượng chỉnh sửa */
+}
+
+.delete-icon:hover {
+    color: #dc3545;
+    /* Màu đỏ cho biểu tượng xóa */
+}
+
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.results-count {
+    font-size: 0.875rem;
+    color: #555;
+    font-weight: bold;
+    /* font-family: 'Roboto', sans-serif; */
+    margin-left: 1rem;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+}
+
+.pagination-controls button {
+    margin: 0 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.pagination-controls button.active {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+.pagination-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* Sort icon styles */
+.sort-icon {
+    font-size: 16px;
+    margin-left: 8px;
+    cursor: pointer;
+    color: #6c757d;
+    transition: color 0.3s ease;
+}
+
+.sort-icon:hover {
+    color: #93ffe0;
+}
+
+
+/* Wrapper for the search input and icons */
+.filter-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filter-input-wrapper {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    overflow: hidden;
+    margin-left: 1rem;
+    width: 300px;
+}
+
+.filter-input {
+    flex: 1;
+    border: none;
+    padding: 0.5rem;
+    font-size: 1rem;
+    background-color: transparent;
+    outline: none;
+}
+
+.clear-icon {
+    font-size: 20px;
+    color: #dc3545;
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+body.dark-mode .table th,
+body.dark-mode .table td {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+body.dark-mode .filter-input-wrapper {
+    background-color: #333333;
+    border-color: #444444;
+}
+
+body.dark-mode .filter-input {
+    color: #ffffff;
+}
+
+body.dark-mode .pagination-controls button {
+    background-color: #333333;
+    border-color: #444444;
+    color: #ffffff;
+}
+
+body.dark-mode .pagination-controls button.active {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+.toggle-icon {
+    font-size: 45px;
+    cursor: pointer;
+    color: #6c757d;
+    transition: color 0.3s ease;
+}
+
+.toggle-icon:hover {
+    color: #93ffe0;
+}
+
+body.dark-mode .toggle-icon {
+    color: #ffffff;
+}
+
+body.dark-mode .toggle-icon:hover {
+    color: #93ffe0;
+}
+
+.mode-toggle-button {
+    font-size: 40px;
+    cursor: pointer;
+}
+
+.mode-toggle-button:hover {
+    background-color: #93ffe0;
+    color: #ffffff;
+}
+
+.sentinel {
+    height: 20px;
+}
+
+.icon-container {
+    display: flex;
+    width: 100px;
+    margin-right: 1rem;
+    justify-content: space-between;
+}
+
+/* Loading spinner styles */
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    /* Chiều cao toàn màn hình */
+}
+
+.loading-spinner .spinner {
+    color: #6c757d;
+    font-size: 6rem;
+    /* Màu xám nhạt */
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+/* SweetAlert form container */
+.form-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Form group styling */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Form input styling */
+.form-input {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fff;
+    appearance: none;
+    /* Loại bỏ mũi tên mặc định trên một số trình duyệt */
+}
+
+.form-input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Checkbox styling */
+.form-checkbox {
+    width: 20px;
+    height: 20px;
+    margin-top: 0.5rem;
+}
+
+/* Label styling */
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #333;
+}
