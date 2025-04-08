@@ -106,7 +106,7 @@
         </table>
 
         <!-- Pagination controls displayed only in pagination mode -->
-        <div class="pagination" v-if="!isInfiniteScroll">
+        <div class="pagination" v-if="!isInfiniteScroll && !filterQuery">
             <div class="results-count">{{ users.length }} results</div>
             <div class="pagination-controls">
                 <!-- Previous page button -->
@@ -130,9 +130,8 @@
 <script setup lang="ts">
 import '../../assets/UsersTable.css'; // Import CSS styles for the table
 import Swal from 'sweetalert2'; // Import SweetAlert2 for modals and alerts
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'; // Vue composition API utilities
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'; // Vue composition API utilities
 import { Icon } from '@iconify/vue'; // Iconify component for icons
-import { watch } from 'vue'; // Watch utility for reactive changes
 
 // Define the user interface
 interface TUser {
