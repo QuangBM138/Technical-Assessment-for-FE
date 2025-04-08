@@ -219,7 +219,6 @@ const filteredUsers = computed(() => {
         });
     }
 
-    updateVisibleUsers(); // Update visible users for infinite scroll
     return result;
 });
 
@@ -286,7 +285,10 @@ const sortTable = (key: string) => {
         sortKey.value = key;
         sortOrder.value = 'asc';
     }
-    updateVisibleUsers(); // Update visible users after sorting
+    if (!isInfiniteScroll.value) {
+        updateVisibleUsers(); // Update visible users after sorting
+    }
+
 };
 
 // Computed property for visible pagination pages
