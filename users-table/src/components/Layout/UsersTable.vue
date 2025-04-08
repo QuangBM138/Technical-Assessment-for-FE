@@ -186,39 +186,37 @@ const totalPages = computed(() => Math.ceil(users.value.length / rowsPerPage.val
 // Search filter state
 const filterQuery = ref<string>(''); // Search query input
 
+const filterUsers = (users: TUser[], query: string): TUser[] => {
+    if (!query) return users;
+    const lowerQuery = query.toLowerCase();
+    return users.filter(user =>
+        user.name.toLowerCase().includes(lowerQuery) ||
+        user.email.toLowerCase().includes(lowerQuery)
+    );
+};
+
+const sortUsers = (users: TUser[], key: string | null, order: 'asc' | 'desc'): TUser[] => {
+    if (!key) return users;
+    return [...users].sort((a, b) => {
+        const aValue = a[key as keyof TUser];
+        const bValue = b[key as keyof TUser];
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+            return order === 'asc'
+                ? aValue.localeCompare(bValue, undefined, { numeric: true })
+                : bValue.localeCompare(aValue, undefined, { numeric: true });
+        }
+
+        if (aValue < bValue) return order === 'asc' ? -1 : 1;
+        if (aValue > bValue) return order === 'asc' ? 1 : -1;
+        return 0;
+    });
+};
+
 // Computed property for filtered and sorted users
 const filteredUsers = computed(() => {
-    let result = users.value;
-
-    // Apply search filter
-    if (filterQuery.value) {
-        const query = filterQuery.value.toLowerCase();
-        result = result.filter(user =>
-            user.name.toLowerCase().includes(query) ||
-            user.email.toLowerCase().includes(query)
-        );
-    }
-
-    // Apply sorting based on sortKey and sortOrder
-    if (sortKey.value) {
-        result = [...result].sort((a, b) => {
-            const aValue = a[sortKey.value as keyof TUser];
-            const bValue = b[sortKey.value as keyof TUser];
-
-            // Handle string sorting naturally
-            if (typeof aValue === 'string' && typeof bValue === 'string') {
-                return sortOrder.value === 'asc'
-                    ? aValue.localeCompare(bValue, undefined, { numeric: true })
-                    : bValue.localeCompare(aValue, undefined, { numeric: true });
-            }
-
-            // Handle numeric or other type sorting
-            if (aValue < bValue) return sortOrder.value === 'asc' ? -1 : 1;
-            if (aValue > bValue) return sortOrder.value === 'asc' ? 1 : -1;
-            return 0;
-        });
-    }
-
+    let result = filterUsers(users.value, filterQuery.value);
+    result = sortUsers(result, sortKey.value, sortOrder.value);
     return result;
 });
 
